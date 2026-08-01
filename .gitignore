@@ -1,0 +1,9 @@
+# Segredos — nunca commitar
+.env
+chave.txt
+cloudfraont.txt
+ghl-config.json
+
+node_modules/
+*.log
+.DS_Store

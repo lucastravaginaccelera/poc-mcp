@@ -1,0 +1,11 @@
+Preciso criar uma Landing Page integrada com MCP do GHL
+que a pessoa preenche um formulário e esses dados entrem como lead
+e contato. 
+
+Antes, configure um pipeline e também já coloque nese formulario uma qualificação desse lead
+com base nesse formulario
+
+formulario wizards a pessoa escolher a reposta baseado em uma pergunta de qualificação. 
+
+use esse design do site https://getdesign.md/meta/design-md
+npx getdesign@latest add meta instale pra mim

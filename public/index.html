@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Diagnostico de Crescimento — Accelera360</title>
+<style>
+  /* ---- tokens do DESIGN.md (meta) ---- */
+  :root {
+    --primary: #0064e0;
+    --primary-deep: #0457cb;
+    --on-primary: #ffffff;
+    --ink-button: #000000;
+    --fb-blue: #1876f2;
+    --selected: #0143b5;
+    --success: #31a24c;
+    --warning: #f7b928;
+    --critical: #e41e3f;
+    --canvas: #ffffff;
+    --surface-soft: #f1f4f7;
+    --ink-deep: #0a1317;
+    --ink: #1c1e21;
+    --charcoal: #444950;
+    --steel: #5d6c7b;
+    --stone: #8595a4;
+    --hairline: #ced0d4;
+    --hairline-soft: #dee3e9;
+    --disabled: #bcc0c4;
+
+    --r-lg: 8px; --r-xl: 16px; --r-xxl: 24px; --r-xxxl: 32px; --r-full: 100px;
+    --s-xs: 8px; --s-md: 12px; --s-base: 16px; --s-lg: 20px; --s-xl: 24px;
+    --s-xxl: 32px; --s-xxxl: 40px; --s-section: 64px;
+
+    /* Optimistic VF e proprietaria da Meta; caimos para a stack do sistema. */
+    --font: 'Optimistic VF', 'SF Pro Display', -apple-system, BlinkMacSystemFont,
+            'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--canvas);
+    color: var(--ink);
+    font-size: 16px; line-height: 1.5; letter-spacing: -0.16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- promo banner ---- */
+  .promo {
+    background: var(--ink-deep); color: var(--canvas);
+    font-size: 14px; font-weight: 700; line-height: 1.43;
+    padding: var(--s-md) var(--s-xl); text-align: center;
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--s-xl); }
+
+  /* ---- hero ---- */
+  .hero { padding: var(--s-section) 0 var(--s-xxl); text-align: center; }
+  .eyebrow {
+    display: inline-block; background: var(--surface-soft); color: var(--steel);
+    font-size: 12px; font-weight: 700; line-height: 1.33;
+    padding: 6px 14px; border-radius: var(--r-full); margin-bottom: var(--s-lg);
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  h1 {
+    font-size: clamp(34px, 6vw, 64px); font-weight: 500; line-height: 1.16;
+    letter-spacing: -1.5px; color: var(--ink-deep); max-width: 16ch;
+    margin: 0 auto var(--s-lg);
+  }
+  .sub {
+    font-size: 18px; font-weight: 400; line-height: 1.44; color: var(--charcoal);
+    max-width: 56ch; margin: 0 auto;
+  }
+
+  /* ---- card do wizard ---- */
+  .card {
+    background: var(--canvas); border: 1px solid var(--hairline-soft);
+    border-radius: var(--r-xxxl); padding: var(--s-xxl);
+    max-width: 680px; margin: 0 auto var(--s-section);
+  }
+  @media (max-width: 600px) {
+    .card { padding: var(--s-lg); border-radius: var(--r-xxl); }
+    .hero { padding: var(--s-xxl) 0 var(--s-lg); }
+  }
+
+  /* ---- progresso ---- */
+  .prog-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: var(--s-md);
+  }
+  .prog-step { font-size: 12px; font-weight: 700; color: var(--steel); text-transform: uppercase; letter-spacing: 0.4px; }
+  .prog-pct  { font-size: 12px; font-weight: 700; color: var(--stone); }
+  .prog-rail { height: 6px; background: var(--surface-soft); border-radius: var(--r-full); overflow: hidden; }
+  .prog-fill { height: 100%; width: 0; background: var(--primary); border-radius: var(--r-full); transition: width .35s cubic-bezier(.4,0,.2,1); }
+
+  /* ---- pergunta ---- */
+  .step { margin-top: var(--s-xxl); }
+  .step[hidden] { display: none; }
+  h2 { font-size: clamp(22px, 3.4vw, 28px); font-weight: 500; line-height: 1.21; color: var(--ink-deep); letter-spacing: -0.5px; }
+  .hint { font-size: 14px; color: var(--steel); margin-top: var(--s-xs); line-height: 1.43; }
+
+  .options { display: grid; gap: var(--s-md); margin-top: var(--s-xl); }
+  .opt {
+    display: flex; align-items: center; gap: var(--s-md);
+    background: var(--canvas); border: 1px solid rgba(10,19,23,.12);
+    border-radius: var(--r-lg); padding: var(--s-lg);
+    font-size: 16px; text-align: left; width: 100%;
+    font-family: inherit; color: var(--ink); cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .opt:hover { border-color: var(--stone); background: #fafbfc; }
+  .opt:active { transform: scale(.994); }
+  .opt:focus-visible { outline: 2px solid var(--fb-blue); outline-offset: 2px; }
+  .opt[aria-checked="true"] { border: 2px solid var(--selected); padding: calc(var(--s-lg) - 1px); }
+  .dot {
+    flex: 0 0 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--hairline); position: relative; transition: border-color .15s;
+  }
+  .opt[aria-checked="true"] .dot { border-color: var(--selected); }
+  .opt[aria-checked="true"] .dot::after {
+    content: ''; position: absolute; inset: 3px;
+    border-radius: 50%; background: var(--selected);
+  }
+
+  /* ---- formulario final ---- */
+  .fields { display: grid; gap: var(--s-base); margin-top: var(--s-xl); }
+  label { display: block; font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  input {
+    width: 100%; height: 44px; padding: var(--s-md);
+    background: var(--canvas); color: var(--ink); font-family: inherit; font-size: 16px;
+    border: 1px solid var(--hairline); border-radius: var(--r-lg);
+    transition: border .15s;
+  }
+  input:focus { outline: none; border: 2px solid var(--fb-blue); padding: calc(var(--s-md) - 1px); }
+  input[aria-invalid="true"] { border: 1px solid var(--critical); }
+  .optional { font-weight: 400; color: var(--stone); }
+
+  /* ---- botoes ---- */
+  .actions { display: flex; gap: var(--s-md); align-items: center; margin-top: var(--s-xl); }
+  .btn {
+    font-family: inherit; font-size: 14px; font-weight: 700; line-height: 1.43;
+    letter-spacing: -0.14px; border-radius: var(--r-full); cursor: pointer;
+    border: none; transition: background .15s, opacity .15s;
+  }
+  .btn-primary { background: var(--ink-button); color: #fff; padding: 14px 30px; }
+  .btn-primary:hover { background: var(--charcoal); }
+  .btn-primary:disabled { background: var(--disabled); color: var(--canvas); cursor: not-allowed; }
+  .btn-cta { background: var(--primary); color: var(--on-primary); padding: 14px 30px; }
+  .btn-cta:hover { background: var(--primary-deep); }
+  .btn-cta:disabled { background: var(--disabled); cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; color: var(--ink-deep); padding: 10px 22px;
+    border: 2px solid rgba(10,19,23,.12);
+  }
+  .btn-ghost:hover { border-color: var(--ink-deep); }
+
+  .erro {
+    background: rgba(228,30,63,.08); color: var(--critical);
+    border-radius: var(--r-lg); padding: var(--s-md) var(--s-base);
+    font-size: 14px; margin-top: var(--s-base); display: none;
+  }
+  .erro.on { display: block; }
+
+  /* ---- sucesso ---- */
+  .done { text-align: center; padding: var(--s-xl) 0; }
+  .done[hidden] { display: none; }
+  .badge {
+    display: inline-block; border-radius: var(--r-full);
+    font-size: 12px; font-weight: 700; padding: 6px 14px;
+    color: var(--canvas); text-transform: uppercase; letter-spacing: .4px;
+  }
+  .badge.Quente { background: var(--critical); }
+  .badge.Morno  { background: var(--warning); color: var(--ink-deep); }
+  .badge.Frio   { background: var(--steel); }
+  .score { font-size: 64px; font-weight: 500; line-height: 1.16; color: var(--ink-deep); margin: var(--s-base) 0 4px; letter-spacing: -2px; }
+  .score small { font-size: 24px; color: var(--stone); font-weight: 400; }
+  .ids {
+    background: var(--surface-soft); border-radius: var(--r-xl);
+    padding: var(--s-base); margin-top: var(--s-xl);
+    font-size: 12px; color: var(--steel); text-align: left;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  footer {
+    border-top: 1px solid var(--hairline-soft); color: var(--steel);
+    font-size: 14px; padding: var(--s-xxl) var(--s-xl); text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="promo">Diagnostico gratuito · resposta em ate 24h uteis</div>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="eyebrow">Accelera360</span>
+    <h1>Descubra o proximo passo do seu crescimento</h1>
+    <p class="sub">
+      Quatro perguntas rapidas. No final voce recebe sua classificacao e nosso time
+      entra em contato com o plano certo para o seu momento.
+    </p>
+  </header>
+
+  <main class="card">
+    <!-- progresso -->
+    <div id="prog">
+      <div class="prog-head">
+        <span class="prog-step" id="progStep">Carregando</span>
+        <span class="prog-pct" id="progPct">0%</span>
+      </div>
+      <div class="prog-rail"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+
+    <!-- passos gerados via JS -->
+    <div id="steps"></div>
+
+    <!-- passo final: dados de contato -->
+    <section class="step" id="stepContato" hidden>
+      <h2>Quase la — para onde enviamos o diagnostico?</h2>
+      <p class="hint">Seus dados vao direto para o nosso CRM. Sem spam.</p>
+      <div class="fields">
+        <div>
+          <label for="nome">Nome completo</label>
+          <input id="nome" name="nome" autocomplete="name" placeholder="Maria Silva" />
+        </div>
+        <div>
+          <label for="email">E-mail corporativo</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="maria@empresa.com.br" />
+        </div>
+        <div>
+          <label for="telefone">Telefone com DDD</label>
+          <input id="telefone" name="telefone" type="tel" autocomplete="tel" placeholder="(11) 98888-7777" />
+        </div>
+        <div>
+          <label for="empresa">Empresa <span class="optional">(opcional)</span></label>
+          <input id="empresa" name="empresa" autocomplete="organization" placeholder="Empresa S/A" />
+        </div>
+      </div>
+      <div class="erro" id="erro"></div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="btnVoltarContato" type="button">Voltar</button>
+        <button class="btn btn-cta" id="btnEnviar" type="button">Enviar diagnostico</button>
+      </div>
+    </section>
+
+    <!-- sucesso -->
+    <section class="done" id="done" hidden>
+      <span class="badge" id="doneBadge"></span>
+      <div class="score"><span id="doneScore">0</span><small id="doneMax">/100</small></div>
+      <h2 id="doneTitulo">Recebemos seu diagnostico</h2>
+      <p class="hint" id="doneTexto"></p>
+      <div class="ids" id="doneIds"></div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  POC de integracao MCP · GoHighLevel — UI seguindo o DESIGN.md (meta) via getdesign
+</footer>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const state = { questions: [], answers: {}, step: 0 };
+
+  const els = {
+    steps: $('steps'), contato: $('stepContato'), done: $('done'), prog: $('prog'),
+    fill: $('progFill'), pct: $('progPct'), stepLabel: $('progStep'),
+    erro: $('erro'), enviar: $('btnEnviar'),
+  };
+
+  /** Total de passos = perguntas + tela de contato. */
+  const totalSteps = () => state.questions.length + 1;
+
+  function render() {
+    els.steps.innerHTML = '';
+    state.questions.forEach((q, i) => {
+      const sec = document.createElement('section');
+      sec.className = 'step';
+      sec.hidden = true;
+      sec.dataset.index = String(i);
+
+      const h = document.createElement('h2');
+      h.textContent = q.label;
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = q.hint;
+
+      const list = document.createElement('div');
+      list.className = 'options';
+      list.setAttribute('role', 'radiogroup');
+      list.setAttribute('aria-label', q.label);
+
+      q.options.forEach((opt) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt';
+        b.setAttribute('role', 'radio');
+        b.setAttribute('aria-checked', 'false');
+        b.dataset.optionId = opt.id;
+        b.innerHTML = '<span class="dot"></span>';
+        b.appendChild(document.createTextNode(opt.label));
+        b.addEventListener('click', () => choose(q.id, opt.id, list, b, i));
+        list.appendChild(b);
+      });
+
+      sec.append(h, hint, list);
+
+      // Passos depois do primeiro ganham botao de voltar.
+      if (i > 0) {
+        const acts = document.createElement('div');
+        acts.className = 'actions';
+        const back = document.createElement('button');
+        back.type = 'button';
+        back.className = 'btn btn-ghost';
+        back.textContent = 'Voltar';
+        back.addEventListener('click', () => goTo(i - 1));
+        acts.appendChild(back);
+        sec.appendChild(acts);
+      }
+      els.steps.appendChild(sec);
+    });
+    goTo(0);
+  }
+
+  function choose(questionId, optionId, list, btn, index) {
+    state.answers[questionId] = optionId;
+    list.querySelectorAll('.opt').forEach((o) => o.setAttribute('aria-checked', 'false'));
+    btn.setAttribute('aria-checked', 'true');
+    // Pequena pausa para o usuario ver a selecao antes de avancar.
+    setTimeout(() => goTo(index + 1), 220);
+  }
+
+  function goTo(step) {
+    state.step = step;
+    const isContato = step >= state.questions.length;
+
+    els.steps.querySelectorAll('.step').forEach((s) => {
+      s.hidden = Number(s.dataset.index) !== step;
+    });
+    els.contato.hidden = !isContato;
+
+    const pct = Math.round((step / totalSteps()) * 100);
+    els.fill.style.width = pct + '%';
+    els.pct.textContent = pct + '%';
+    els.stepLabel.textContent = `Passo ${Math.min(step + 1, totalSteps())} de ${totalSteps()}`;
+
+    if (isContato) $('nome').focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showErro(msg) {
+    els.erro.textContent = msg;
+    els.erro.classList.add('on');
+  }
+
+  $('btnVoltarContato').addEventListener('click', () => goTo(state.questions.length - 1));
+
+  els.enviar.addEventListener('click', async () => {
+    els.erro.classList.remove('on');
+    const body = {
+      nome: $('nome').value.trim(),
+      email: $('email').value.trim(),
+      telefone: $('telefone').value.trim(),
+      empresa: $('empresa').value.trim(),
+      answers: state.answers,
+    };
+
+    // Validacao local — o servidor revalida tudo de novo.
+    const faltando = ['nome', 'email', 'telefone'].filter((k) => !body[k]);
+    if (faltando.length) {
+      faltando.forEach((k) => $(k).setAttribute('aria-invalid', 'true'));
+      return showErro('Preencha nome, e-mail e telefone.');
+    }
+    ['nome', 'email', 'telefone'].forEach((k) => $(k).removeAttribute('aria-invalid'));
+
+    els.enviar.disabled = true;
+    els.enviar.textContent = 'Enviando...';
+    try {
+      const res = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Falha ao enviar.');
+      sucesso(data);
+    } catch (err) {
+      showErro(err.message);
+      els.enviar.disabled = false;
+      els.enviar.textContent = 'Enviar diagnostico';
+    }
+  });
+
+  const COPY = {
+    Quente: 'Seu perfil entrou como prioridade. Nosso time comercial fala com voce em ate 24h uteis.',
+    Morno: 'Seu perfil foi qualificado. Vamos enviar um plano alinhado ao seu momento nos proximos dias.',
+    Frio: 'Registramos seu contato. Vamos te enviar materiais para ajudar a amadurecer o projeto.',
+  };
+
+  function sucesso(data) {
+    els.prog.hidden = true;
+    els.steps.hidden = true;
+    els.contato.hidden = true;
+    els.done.hidden = false;
+
+    $('doneBadge').textContent = 'Lead ' + data.classificacao;
+    $('doneBadge').className = 'badge ' + data.classificacao;
+    $('doneScore').textContent = data.score;
+    $('doneMax').textContent = '/' + data.maxScore;
+    $('doneTitulo').textContent = 'Tudo certo, recebemos seu diagnostico';
+    $('doneTexto').textContent = COPY[data.classificacao] ?? '';
+    $('doneIds').textContent =
+      `contactId:     ${data.contactId}\nopportunityId: ${data.opportunityId}`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  fetch('/api/form')
+    .then((r) => r.json())
+    .then((data) => { state.questions = data.questions; render(); })
+    .catch(() => {
+      els.steps.innerHTML =
+        '<section class="step"><h2>Nao consegui carregar o formulario</h2>' +
+        '<p class="hint">Recarregue a pagina em alguns instantes.</p></section>';
+    });
+})();
+</script>
+</body>
+</html>

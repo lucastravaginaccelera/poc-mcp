@@ -1,0 +1,14 @@
+{
+  "name": "poc-mcp-lp-qualificacao",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Landing page com wizard de qualificacao integrada ao GoHighLevel",
+  "scripts": {
+    "setup": "node --env-file=.env setup-ghl.mjs",
+    "start": "node --env-file=.env server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
